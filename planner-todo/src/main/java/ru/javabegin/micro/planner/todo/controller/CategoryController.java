@@ -5,9 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.Category;
+import ru.javabegin.micro.planner.todo.feign.UserFeignClient;
 import ru.javabegin.micro.planner.todo.search.CategorySearchValues;
 import ru.javabegin.micro.planner.todo.service.CategoryService;
-import ru.javabegin.micro.planner.utils.rest.resttemplate.UserRestBuilder;
 import ru.javabegin.micro.planner.utils.rest.webclient.UserWebClientBuilder;
 
 import java.util.List;
@@ -33,12 +33,15 @@ public class CategoryController {
     // микросервисы для работы с пользователями
     private UserWebClientBuilder userWebClientBuilder;
 
+    private UserFeignClient userFeignClient;
+
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public CategoryController(CategoryService categoryService, UserWebClientBuilder userWebClientBuilder) {
+    public CategoryController(CategoryService categoryService, UserWebClientBuilder userWebClientBuilder, UserFeignClient userFeignClient) {
         this.categoryService = categoryService;
         this.userWebClientBuilder = userWebClientBuilder;
+        this.userFeignClient = userFeignClient;
     }
 
     @PostMapping("/all")
@@ -61,10 +64,14 @@ public class CategoryController {
             return new ResponseEntity("missed param: title MUST be not null", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        // если такой пользователь существует
-        if (userWebClientBuilder.userExists(category.getUserId())) { // вызываем микросервис из другого модуля
-            return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
+        if (userFeignClient.findUserById(category.getUserId()) != null) {
+            return ResponseEntity.ok(categoryService.add(category));
         }
+
+//        // если такой пользователь существует
+//        if (userWebClientBuilder.userExists(category.getUserId())) { // вызываем микросервис из другого модуля
+//            return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
+//        }
 
 //        // пример асинхронного вызова (подписываемся на результат)
 //        userWebClientBuilder.userExistsAsync(category.getUserId()).subscribe(user -> System.out.println("user = " + user));
