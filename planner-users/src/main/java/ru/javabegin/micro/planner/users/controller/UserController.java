@@ -6,9 +6,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.User;
-import ru.javabegin.micro.planner.users.mq.MessageFuncAction;
 import ru.javabegin.micro.planner.users.search.UserSearchValues;
 import ru.javabegin.micro.planner.users.service.UserService;
 
@@ -36,15 +36,16 @@ import java.util.Optional;
 public class UserController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
+    private static final String TOPIC_NAME = "javabegin-test";
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
-    private MessageFuncAction messageFuncAction;
+    private KafkaTemplate<String, Long> kafkaTemplate;
 
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public UserController(UserService userService, MessageFuncAction messageFuncAction) {
+    public UserController(UserService userService, KafkaTemplate<String, Long> kafkaTemplate) {
         this.userService = userService;
-        this.messageFuncAction = messageFuncAction;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
 
@@ -73,7 +74,9 @@ public class UserController {
 
         user = userService.add(user);
 
-        messageFuncAction.sendNewUserMessage(user.getId());
+        if (user != null) {
+            kafkaTemplate.send(TOPIC_NAME, user.getId());
+        }
 
         return ResponseEntity.ok(user); // возвращаем созданный объект со сгенерированным id
 

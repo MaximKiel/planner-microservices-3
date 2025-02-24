@@ -26,8 +26,8 @@ dependencies {
     implementation 'ru.javabegin.micro.planner:planner-entity'
     implementation 'ru.javabegin.micro.planner:planner-utils'
 
-    implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
-
+//    implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
+    implementation 'org.springframework.kafka:spring-kafka'
 
     // драйвер БД
     runtimeOnly 'org.postgresql:postgresql'

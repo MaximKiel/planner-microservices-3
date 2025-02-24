@@ -1,5 +1,6 @@
 package ru.javabegin.micro.planner.todo.service;
 
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import ru.javabegin.micro.planner.entity.Category;
 import ru.javabegin.micro.planner.entity.Priority;
@@ -19,6 +20,12 @@ public class TestDataService {
         this.taskService = taskService;
         this.priorityService = priorityService;
         this.categoryService = categoryService;
+    }
+
+    @KafkaListener(topics = "javabegin-test")
+    public void listenKafka(Long userId) {
+        System.out.println("new user = " + userId);
+        initTestData(userId);
     }
 
     public void initTestData(Long userId) {
