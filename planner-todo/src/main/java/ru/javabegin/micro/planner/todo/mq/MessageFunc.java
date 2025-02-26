@@ -12,7 +12,7 @@ public class MessageFunc {
 //    }
 //
 //    @Bean
-//    public Consumer<Message<Long>> newUserActionConsumer() {
+//    public Consumer<Message<String>> newUserActionConsumer() {
 //        return message -> testDataService.initTestData(message.getPayload());
 //    }
 }

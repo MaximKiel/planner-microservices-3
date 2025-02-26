@@ -6,6 +6,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.Task;
 import ru.javabegin.micro.planner.todo.search.TaskSearchValues;
@@ -54,18 +56,20 @@ public class TaskController {
 
     // получение всех данных
     @PostMapping("/all")
-    public ResponseEntity<List<Task>> findAll(@RequestBody Long userId) {
+    public ResponseEntity<List<Task>> findAll(@RequestBody String userId) {
         return ResponseEntity.ok(taskService.findAll(userId)); // поиск всех задач конкретного пользователя
     }
 
     // добавление
     @PostMapping("/add")
-    public ResponseEntity<Task> add(@RequestBody Task task) {
+    public ResponseEntity<Task> add(@RequestBody Task task, @AuthenticationPrincipal Jwt jwt) {
+
+        task.setUserId(jwt.getSubject());
 
         // проверка на обязательные параметры
         if (task.getId() != null && task.getId() != 0) {
             // id создается автоматически в БД (autoincrement), поэтому его передавать не нужно, иначе может быть конфликт уникальности значения
-            return new ResponseEntity("redundant param: id MUST be null", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("redundant param: task id MUST be null", HttpStatus.NOT_ACCEPTABLE);
         }
 
         // если передали пустое значение title
@@ -74,8 +78,8 @@ public class TaskController {
         }
 
         // если такой пользователь существует
-        if (userWebClientBuilder.userExists(task.getUserId())) { // вызываем микросервис из другого модуля
-            return ResponseEntity.ok(taskService.add(task)); // возвращаем добавленный объект с заполненным ID
+        if (!task.getUserId().isBlank()) {
+            return ResponseEntity.ok(taskService.add(task));
         }
 
         // если пользователя НЕ существует
@@ -144,7 +148,9 @@ public class TaskController {
 
     // поиск по любым параметрам TaskSearchValues
     @PostMapping("/search")
-    public ResponseEntity<Page<Task>> search(@RequestBody TaskSearchValues taskSearchValues) throws ParseException {
+    public ResponseEntity<Page<Task>> search(@RequestBody TaskSearchValues taskSearchValues, @AuthenticationPrincipal Jwt jwt) throws ParseException {
+
+        taskSearchValues.setUserId(jwt.getSubject());
 
         // все заполненные условия проверяются одновременно (т.е. И, а не ИЛИ)
         // это можно изменять в запросе репозитория
@@ -164,7 +170,7 @@ public class TaskController {
         Integer pageNumber = taskSearchValues.getPageNumber() != null ? taskSearchValues.getPageNumber() : null;
         Integer pageSize = taskSearchValues.getPageSize() != null ? taskSearchValues.getPageSize() : null;
 
-        Long userId = taskSearchValues.getUserId() != null ? taskSearchValues.getUserId() : null; // для показа задач только этого пользователя
+        String userId = taskSearchValues.getUserId();
 
 //        // проверка на обязательные параметры
 //        if (userId == null || userId == 0) {

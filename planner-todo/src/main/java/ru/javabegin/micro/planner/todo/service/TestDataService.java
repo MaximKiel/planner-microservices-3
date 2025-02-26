@@ -23,12 +23,12 @@ public class TestDataService {
     }
 
     @KafkaListener(topics = "javabegin-test")
-    public void listenKafka(Long userId) {
+    public void listenKafka(String userId) {
         System.out.println("new user = " + userId);
         initTestData(userId);
     }
 
-    public void initTestData(Long userId) {
+    public void initTestData(String userId) {
         Priority prior1 = new Priority();
         prior1.setColor("#fff");
         prior1.setTitle("Важный");
