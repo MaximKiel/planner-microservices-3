@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import ru.javabegin.micro.planner.utils.converter.KCRoleConverter;
 
 @Configuration
@@ -21,6 +22,11 @@ public class SpringSecurityConfig {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new KCRoleConverter());
 
         http.authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                new AntPathRequestMatcher("/category/*"),
+                                new AntPathRequestMatcher("/task/*"),
+                                new AntPathRequestMatcher("/priority/*")
+                        ).hasRole("user")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(configurer -> configurer
                         .jwt(oauth -> oauth.jwtAuthenticationConverter(jwtAuthenticationConverter)));
