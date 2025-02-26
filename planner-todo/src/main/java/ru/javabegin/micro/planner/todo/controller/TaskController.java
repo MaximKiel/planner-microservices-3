@@ -166,17 +166,15 @@ public class TaskController {
 
         Long userId = taskSearchValues.getUserId() != null ? taskSearchValues.getUserId() : null; // для показа задач только этого пользователя
 
-        // проверка на обязательные параметры
-        if (userId == null || userId == 0) {
-            return new ResponseEntity("missed param: user id", HttpStatus.NOT_ACCEPTABLE);
-        }
-
+//        // проверка на обязательные параметры
+//        if (userId == null || userId == 0) {
+//            return new ResponseEntity("missed param: user id", HttpStatus.NOT_ACCEPTABLE);
+//        }
 
         // чтобы захватить в выборке все задачи по датам, независимо от времени - можно выставить время с 00:00 до 23:59
 
         Date dateFrom = null;
         Date dateTo = null;
-
 
         // выставить 00:01 для начальной даты (если она указана)
         if (taskSearchValues.getDateFrom() != null) {

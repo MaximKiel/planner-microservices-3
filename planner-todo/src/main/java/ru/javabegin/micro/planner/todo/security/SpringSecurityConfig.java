@@ -21,7 +21,6 @@ public class SpringSecurityConfig {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new KCRoleConverter());
 
         http.authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(configurer -> configurer
                         .jwt(oauth -> oauth.jwtAuthenticationConverter(jwtAuthenticationConverter)));
