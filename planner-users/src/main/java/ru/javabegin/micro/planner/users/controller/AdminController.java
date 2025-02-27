@@ -9,9 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.User;
+import ru.javabegin.micro.planner.users.keycloak.KeycloakUtils;
 import ru.javabegin.micro.planner.users.search.UserSearchValues;
 import ru.javabegin.micro.planner.users.service.UserService;
 
+import javax.ws.rs.core.Response;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -38,20 +40,22 @@ public class AdminController {
     public static final String ID_COLUMN = "id"; // имя столбца id
     private static final String TOPIC_NAME = "javabegin-test";
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
+    private final KeycloakUtils keycloakUtils;
     private KafkaTemplate<String, Long> kafkaTemplate;
 
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public AdminController(UserService userService, KafkaTemplate<String, Long> kafkaTemplate) {
+    public AdminController(UserService userService, KeycloakUtils keycloakUtils, KafkaTemplate<String, Long> kafkaTemplate) {
         this.userService = userService;
+        this.keycloakUtils = keycloakUtils;
         this.kafkaTemplate = kafkaTemplate;
     }
 
 
     // добавление
     @PostMapping("/add")
-    public ResponseEntity<User> add(@RequestBody User user) {
+    public ResponseEntity add(@RequestBody User user) {
 
         // проверка на обязательные параметры
         if (user.getId() != null && user.getId() != 0) {
@@ -72,16 +76,16 @@ public class AdminController {
             return new ResponseEntity("missed param: username", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        user = userService.add(user);
+//        user = userService.add(user);
 
-        if (user != null) {
-            kafkaTemplate.send(TOPIC_NAME, user.getId());
-        }
+//        if (user != null) {
+//            kafkaTemplate.send(TOPIC_NAME, user.getId());
+//        }
 
-        return ResponseEntity.ok(user); // возвращаем созданный объект со сгенерированным id
+        Response createdResponse = keycloakUtils.createKeycloakUser(user);
 
+        return ResponseEntity.status(createdResponse.getStatus()).build();
     }
-
 
     // обновление
     @PutMapping("/update")
