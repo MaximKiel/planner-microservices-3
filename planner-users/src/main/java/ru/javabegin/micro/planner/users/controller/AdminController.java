@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import ru.javabegin.micro.planner.entity.User;
+import ru.javabegin.micro.planner.users.dto.UserDTO;
 import ru.javabegin.micro.planner.users.keycloak.KeycloakUtils;
 import ru.javabegin.micro.planner.users.search.UserSearchValues;
 import ru.javabegin.micro.planner.users.service.UserService;
@@ -55,34 +56,28 @@ public class AdminController {
 
     // добавление
     @PostMapping("/add")
-    public ResponseEntity add(@RequestBody User user) {
+    public ResponseEntity add(@RequestBody UserDTO userDTO) {
 
         // проверка на обязательные параметры
-        if (user.getId() != null && user.getId() != 0) {
+        if (userDTO.getId() != null && userDTO.getId() != 0) {
             // id создается автоматически в БД (autoincrement), поэтому его передавать не нужно, иначе может быть конфликт уникальности значения
             return new ResponseEntity("redundant param: id MUST be null", HttpStatus.NOT_ACCEPTABLE);
         }
 
         // если передали пустое значение
-        if (user.getEmail() == null || user.getEmail().trim().length() == 0) {
+        if (userDTO.getEmail() == null || userDTO.getEmail().trim().length() == 0) {
             return new ResponseEntity("missed param: email", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        if (user.getPassword() == null || user.getPassword().trim().length() == 0) {
+        if (userDTO.getPassword() == null || userDTO.getPassword().trim().length() == 0) {
             return new ResponseEntity("missed param: password", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        if (user.getUsername() == null || user.getUsername().trim().length() == 0) {
+        if (userDTO.getUsername() == null || userDTO.getUsername().trim().length() == 0) {
             return new ResponseEntity("missed param: username", HttpStatus.NOT_ACCEPTABLE);
         }
 
-//        user = userService.add(user);
-
-//        if (user != null) {
-//            kafkaTemplate.send(TOPIC_NAME, user.getId());
-//        }
-
-        Response createdResponse = keycloakUtils.createKeycloakUser(user);
+        Response createdResponse = keycloakUtils.createKeycloakUser(userDTO);
 
         return ResponseEntity.status(createdResponse.getStatus()).build();
     }

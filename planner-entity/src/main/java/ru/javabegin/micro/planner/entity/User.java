@@ -8,26 +8,39 @@ package ru.javabegin.micro.planner.entity;
 
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.*;
 import java.util.Objects;
+import java.util.Set;
 
+@Entity
+@Table(name = "user_data", schema = "users", catalog = "user")
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String email;
 
     private String username;
 
+    @Column(name = "userpassword")
     private String password;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ManyToMany(mappedBy = "users")
+    private Set<Role> roles;
+
 
     @Override
     public boolean equals(Object o) {
