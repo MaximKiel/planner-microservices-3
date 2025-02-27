@@ -17,6 +17,8 @@ import ru.javabegin.micro.planner.users.service.UserService;
 
 import javax.ws.rs.core.Response;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -42,6 +44,7 @@ public class AdminController {
     public static final String ID_COLUMN = "id"; // имя столбца id
     private static final String TOPIC_NAME = "javabegin-test";
     private static final int CONFLICT = 409;
+    private static final String USER_ROLE_NAME = "user";
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
     private final KeycloakUtils keycloakUtils;
     private KafkaTemplate<String, Long> kafkaTemplate;
@@ -87,6 +90,11 @@ public class AdminController {
 
         String userId = CreatedResponseUtil.getCreatedId(createdResponse);
         System.out.printf("User created with userId: %s%n", userId);
+
+        List<String> defaultRoles = new ArrayList<>();
+        defaultRoles.add(USER_ROLE_NAME);
+        defaultRoles.add("admin");
+        keycloakUtils.addRoles(userId, defaultRoles);
 
         return ResponseEntity.status(createdResponse.getStatus()).build();
     }

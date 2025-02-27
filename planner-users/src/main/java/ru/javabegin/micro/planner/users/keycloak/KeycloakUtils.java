@@ -4,8 +4,10 @@ import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,7 +15,9 @@ import ru.javabegin.micro.planner.users.dto.UserDTO;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class KeycloakUtils {
@@ -60,7 +64,21 @@ public class KeycloakUtils {
         kcUser.setEnabled(true);
         kcUser.setEmailVerified(false);
 
-        return usersResource.create(kcUser);
+        Response response = usersResource.create(kcUser);
+
+        return response;
+    }
+
+    public void addRoles(String userId, List<String> roles) {
+        List<RoleRepresentation> kcRoles = new ArrayList<>();
+
+        for (String role : roles) {
+            RoleRepresentation roleRep = realmResource.roles().get(role).toRepresentation();
+            kcRoles.add(roleRep);
+        }
+
+        UserResource uniqueUserResource = usersResource.get(userId);
+        uniqueUserResource.roles().realmLevel().add(kcRoles);
     }
 
     private CredentialRepresentation createPasswordCredentials(String password) {
