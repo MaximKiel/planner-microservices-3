@@ -9,9 +9,9 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import ru.javabegin.micro.planner.entity.User;
 import ru.javabegin.micro.planner.users.dto.UserDTO;
 
+import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
 
@@ -31,8 +31,11 @@ public class KeycloakUtils {
     private String clientSecret;
 
     private static Keycloak keycloak;
+    private static RealmResource realmResource;
+    private static UsersResource usersResource;
 
-    public Keycloak getInstance() {
+    @PostConstruct
+    public Keycloak initKeycloak() {
         if (keycloak == null) {
             keycloak = KeycloakBuilder.builder()
                     .realm(realm)
@@ -41,13 +44,13 @@ public class KeycloakUtils {
                     .clientSecret(clientSecret)
                     .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                     .build();
+            realmResource = keycloak.realm(realm);
+            usersResource = realmResource.users();
         }
         return keycloak;
     }
 
     public Response createKeycloakUser(UserDTO userDTO) {
-        RealmResource realmResource = getInstance().realm(realm);
-        UsersResource usersResource = realmResource.users();
         CredentialRepresentation credentialRepresentation = createPasswordCredentials(userDTO.getPassword());
 
         UserRepresentation kcUser = new UserRepresentation();

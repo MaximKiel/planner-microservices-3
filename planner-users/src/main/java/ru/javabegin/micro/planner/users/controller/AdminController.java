@@ -1,5 +1,6 @@
 package ru.javabegin.micro.planner.users.controller;
 
+import org.keycloak.admin.client.CreatedResponseUtil;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,6 +41,7 @@ public class AdminController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
     private static final String TOPIC_NAME = "javabegin-test";
+    private static final int CONFLICT = 409;
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
     private final KeycloakUtils keycloakUtils;
     private KafkaTemplate<String, Long> kafkaTemplate;
@@ -58,11 +60,11 @@ public class AdminController {
     @PostMapping("/add")
     public ResponseEntity add(@RequestBody UserDTO userDTO) {
 
-        // проверка на обязательные параметры
-        if (userDTO.getId() != null && userDTO.getId() != 0) {
-            // id создается автоматически в БД (autoincrement), поэтому его передавать не нужно, иначе может быть конфликт уникальности значения
-            return new ResponseEntity("redundant param: id MUST be null", HttpStatus.NOT_ACCEPTABLE);
-        }
+//        // проверка на обязательные параметры
+//        if (userDTO.getId() != null && !userDTO.getId().isBlank()) {
+//            // id создается автоматически в БД (autoincrement), поэтому его передавать не нужно, иначе может быть конфликт уникальности значения
+//            return new ResponseEntity("redundant param: id MUST be null", HttpStatus.NOT_ACCEPTABLE);
+//        }
 
         // если передали пустое значение
         if (userDTO.getEmail() == null || userDTO.getEmail().trim().length() == 0) {
@@ -78,6 +80,13 @@ public class AdminController {
         }
 
         Response createdResponse = keycloakUtils.createKeycloakUser(userDTO);
+
+        if (createdResponse.getStatus() == CONFLICT) {
+            return new ResponseEntity("user or email already exists " + userDTO.getEmail(), HttpStatus.CONFLICT);
+        }
+
+        String userId = CreatedResponseUtil.getCreatedId(createdResponse);
+        System.out.printf("User created with userId: %s%n", userId);
 
         return ResponseEntity.status(createdResponse.getStatus()).build();
     }
