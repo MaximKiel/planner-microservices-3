@@ -32,8 +32,8 @@ import java.util.Optional;
 */
 
 @RestController
-@RequestMapping("/user") // базовый URI
-public class UserController {
+@RequestMapping("/admin/user") // базовый URI
+public class AdminController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
     private static final String TOPIC_NAME = "javabegin-test";
@@ -43,7 +43,7 @@ public class UserController {
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public UserController(UserService userService, KafkaTemplate<String, Long> kafkaTemplate) {
+    public AdminController(UserService userService, KafkaTemplate<String, Long> kafkaTemplate) {
         this.userService = userService;
         this.kafkaTemplate = kafkaTemplate;
     }
